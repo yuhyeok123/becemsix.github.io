@@ -26,9 +26,9 @@
         }
         input[type="number"] {
             margin: 10px 0;
-            padding: 20px; /* 입력란을 크게 설정 */
-            width: 80%; /* 입력란의 너비 */
-            font-size: 1.5em; /* 입력란의 글씨 크기 */
+            padding: 20px;
+            width: 80%;
+            font-size: 1.5em;
             border-radius: 4px;
             border: 1px solid #ccc;
             display: none; /* 초기에는 숨깁니다 */
@@ -48,12 +48,17 @@
         }
         #result {
             margin-top: 20px;
-            font-size: 1.2em;
+            font-size: 1.5em; /* 결과 텍스트 크기 조정 */
             color: #333;
         }
         #inputFields {
             display: none; /* 입력 필드를 숨김 */
             margin-top: 20px; /* 입력 필드와 버튼 사이의 간격 */
+        }
+        img {
+            max-width: 80%; /* 이미지 크기 조정 */
+            height: auto;
+            margin-top: 10px; /* 이미지와 텍스트 사이의 간격 */
         }
     </style>
 </head>
@@ -71,6 +76,7 @@
     </div>
 
     <div id="result"></div>
+    <img id="dessertImage" style="display:none;" alt="후식 이미지">
 </div>
 
 <script>
@@ -86,9 +92,11 @@
         const height = parseFloat(document.getElementById("height").value);
         const weight = parseFloat(document.getElementById("weight").value);
         const result = document.getElementById("result");
+        const dessertImage = document.getElementById("dessertImage");
 
         if (isNaN(height) || isNaN(weight)) {
             result.innerText = "키와 몸무게를 모두 입력해 주세요.";
+            dessertImage.style.display = "none"; // 이미지 숨김
             return;
         }
 
@@ -96,15 +104,24 @@
         const bmi = weight / ((height / 100) ** 2);
         const bmiThreshold = 24;  // 기준 변경 (BMI 24 이상일 경우 경고 메시지)
 
-        // 후식 리스트
-        const desserts = ["베라", "요아정", "설빙", "마카롱", "두바이 초콜릿"];
+        // 후식 리스트 및 이미지 맵
+        const desserts = [
+            { name: "베라", image: "https://github.com/user-attachments/assets/b2c5dbd8-cd90-4ddd-8c1a-433dcf8a22ae" },
+            { name: "요아정", image: "https://github.com/user-attachments/assets/ca583534-720d-46bd-8cff-85b294487858" },
+            { name: "설빙", image: "https://github.com/user-attachments/assets/04114a42-ce48-4f86-a2f7-9f90127d421e" },
+            { name: "마카롱", image: "https://github.com/user-attachments/assets/781f1490-0ed4-4472-83ca-a210bdc0d602" },
+            { name: "두바이 초콜릿", image: "https://github.com/user-attachments/assets/1f61b5f1-c609-4867-8d94-da8d88483de0" }
+        ];
 
         // BMI 체크 및 결과 출력
         if (bmi < bmiThreshold) {
             const randomDessert = desserts[Math.floor(Math.random() * desserts.length)];
-            result.innerText = `추천 후식: ${randomDessert}`;
+            result.innerText = `추천 후식: ${randomDessert.name}`;
+            dessertImage.src = randomDessert.image; // 이미지 변경
+            dessertImage.style.display = "block"; // 이미지 표시
         } else {
             result.innerText = "후식 먹지 말고 살좀 빼자!";
+            dessertImage.style.display = "none"; // 이미지 숨김
         }
     }
 </script>
