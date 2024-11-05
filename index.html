@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>후식 랜덤 추천</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="number"] {
+            margin: 10px 0;
+            padding: 10px;
+            width: 80%;
+            font-size: 1em;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>후식 랜덤 추천기</h1>
+    <p>키(cm)와 몸무게(kg)를 입력하고 후식을 추천받으세요!</p>
+    
+    <input type="number" id="height" placeholder="키 (cm)" required>
+    <input type="number" id="weight" placeholder="몸무게 (kg)" required>
+    <button onclick="getDessert()">추천받기</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    function getDessert() {
+        const height = parseFloat(document.getElementById("height").value);
+        const weight = parseFloat(document.getElementById("weight").value);
+        const result = document.getElementById("result");
+
+        if (isNaN(height) || isNaN(weight)) {
+            result.innerText = "키와 몸무게를 모두 입력해 주세요.";
+            return;
+        }
+
+        // BMI 계산
+        const bmi = weight / ((height / 100) ** 2);
+        const bmiThreshold = 24;  // 기준 변경 (BMI 24 이상일 경우 경고 메시지)
+
+        // 후식 리스트 업데이트
+        const desserts = ["베라", "요아정", "설빙", "마카롱", "두바이 초콜릿"];
+
+        // BMI 체크 및 결과 출력
+        if (bmi < bmiThreshold) {
+            const randomDessert = desserts[Math.floor(Math.random() * desserts.length)];
+            result.innerText = `추천 후식: ${randomDessert}`;
+        } else {
+            result.innerText = "BMI가 높아요! 살을 빼야 하니 굶어라!";
+        }
+    }
+</script>
+
+</body>
+</html>
