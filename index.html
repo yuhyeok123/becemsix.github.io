@@ -69,6 +69,14 @@
             font-size: 4em; /* 큰 텍스트 크기 */
             color: red;
         }
+        #bmiWarning {
+            display: none; /* 초기에는 숨김 */
+            position: absolute; /* 텍스트 위치 조정을 위해 설정 */
+            left: 20px;
+            bottom: 20px;
+            font-size: 3em; /* 큰 텍스트 크기 */
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -87,6 +95,7 @@
     <div id="result"></div>
     <img id="dessertImage" style="display:none;" alt="후식 이미지">
     <div id="warning">살 빼고 다시 추천받자!</div>
+    <div id="bmiWarning">후식 먹지 말고 살좀 빼자!</div>
 </div>
 
 <script>
@@ -94,14 +103,12 @@
 
     function showInputs() {
         // 입력 필드가 숨겨져 있으면 표시하고 추천 버튼을 비활성화
-        if (canRecommend) {
-            document.getElementById("inputFields").style.display = "block"; // 입력 필드 표시
-            const inputs = document.querySelectorAll("#inputFields input");
-            inputs.forEach(input => {
-                input.style.display = "block"; // 각 입력 필드 표시
-            });
-            canRecommend = false; // 추천 불가 상태
-        }
+        document.getElementById("inputFields").style.display = "block"; // 입력 필드 표시
+        const inputs = document.querySelectorAll("#inputFields input");
+        inputs.forEach(input => {
+            input.style.display = "block"; // 각 입력 필드 표시
+        });
+        canRecommend = false; // 추천 불가 상태
     }
 
     function getDessert() {
@@ -110,6 +117,7 @@
         const result = document.getElementById("result");
         const dessertImage = document.getElementById("dessertImage");
         const warning = document.getElementById("warning");
+        const bmiWarning = document.getElementById("bmiWarning");
 
         if (isNaN(height) || isNaN(weight)) {
             result.innerText = "키와 몸무게를 모두 입력해 주세요.";
@@ -146,20 +154,24 @@
             });
 
             canRecommend = true; // 추천 가능 상태로 변경
+            warning.style.display = "none"; // 경고 메시지 숨김
+            bmiWarning.style.display = "none"; // BMI 경고 메시지 숨김
         } else {
-            result.innerText = "후식 먹지 말고 살좀 빼자!";
+            result.innerText = ""; // 추천 결과 지우기
             dessertImage.style.display = "none"; // 이미지 숨김
 
             // 추천 버튼과 입력 필드를 비활성화
             canRecommend = false;
             document.getElementById("recommendButton").disabled = true;
             document.getElementById("inputFields").style.display = "none"; // 입력 필드 숨김
-            warning.style.display = "block"; // 경고 메시지 표시
+            warning.style.display = "block"; // "살 빼고 다시 추천받자!" 메시지 표시
+            bmiWarning.style.display = "block"; // "후식 먹지 말고 살좀 빼자!" 메시지 표시
 
             // 10초 후 버튼 활성화 및 경고 메시지 숨김
             setTimeout(() => {
                 document.getElementById("recommendButton").disabled = false;
                 warning.style.display = "none"; // 경고 메시지 숨김
+                bmiWarning.style.display = "none"; // BMI 경고 메시지 숨김
                 canRecommend = true; // 추천 가능 상태로 변경
             }, 10000);
         }
