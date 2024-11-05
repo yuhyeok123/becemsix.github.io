@@ -26,9 +26,9 @@
         }
         input[type="number"] {
             margin: 10px 0;
-            padding: 10px;
-            width: 80%;
-            font-size: 1em;
+            padding: 20px; /* 입력란을 크게 설정 */
+            width: 80%; /* 입력란의 너비 */
+            font-size: 1.5em; /* 입력란의 글씨 크기 */
             border-radius: 4px;
             border: 1px solid #ccc;
             display: none; /* 초기에는 숨깁니다 */
@@ -51,6 +51,10 @@
             font-size: 1.2em;
             color: #333;
         }
+        #inputFields {
+            display: none; /* 입력 필드를 숨김 */
+            margin-top: 20px; /* 입력 필드와 버튼 사이의 간격 */
+        }
     </style>
 </head>
 <body>
@@ -59,7 +63,7 @@
     <h1>후식 랜덤 추천기</h1>
     <button onclick="showInputs()">추천받기</button>
     
-    <div id="inputFields" style="display: none;">
+    <div id="inputFields">
         <p>키(cm)와 몸무게(kg)를 입력하세요:</p>
         <input type="number" id="height" placeholder="키 (cm)" required>
         <input type="number" id="weight" placeholder="몸무게 (kg)" required>
@@ -72,6 +76,10 @@
 <script>
     function showInputs() {
         document.getElementById("inputFields").style.display = "block"; // 입력 필드 표시
+        const inputs = document.querySelectorAll("#inputFields input");
+        inputs.forEach(input => {
+            input.style.display = "block"; // 각 입력 필드 표시
+        });
     }
 
     function getDessert() {
