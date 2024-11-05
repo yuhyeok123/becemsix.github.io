@@ -61,14 +61,6 @@
             height: auto;
             margin-top: 10px; /* 이미지와 텍스트 사이의 간격 */
         }
-        #warning {
-            display: none; /* 초기에는 숨김 */
-            position: absolute; /* 텍스트 위치 조정을 위해 설정 */
-            right: 20px;
-            top: 20px;
-            font-size: 4em; /* 큰 텍스트 크기 */
-            color: red;
-        }
         #bmiWarning {
             display: none; /* 초기에는 숨김 */
             position: absolute; /* 텍스트 위치 조정을 위해 설정 */
@@ -94,7 +86,6 @@
 
     <div id="result"></div>
     <img id="dessertImage" style="display:none;" alt="후식 이미지">
-    <div id="warning">살 빼고 다시 추천받자!</div>
     <div id="bmiWarning">후식 먹지 말고 살좀 빼자!</div>
 </div>
 
@@ -116,7 +107,6 @@
         const weight = parseFloat(document.getElementById("weight").value);
         const result = document.getElementById("result");
         const dessertImage = document.getElementById("dessertImage");
-        const warning = document.getElementById("warning");
         const bmiWarning = document.getElementById("bmiWarning");
 
         if (isNaN(height) || isNaN(weight)) {
@@ -154,7 +144,6 @@
             });
 
             canRecommend = true; // 추천 가능 상태로 변경
-            warning.style.display = "none"; // 경고 메시지 숨김
             bmiWarning.style.display = "none"; // BMI 경고 메시지 숨김
         } else {
             result.innerText = ""; // 추천 결과 지우기
@@ -164,13 +153,11 @@
             canRecommend = false;
             document.getElementById("recommendButton").disabled = true;
             document.getElementById("inputFields").style.display = "none"; // 입력 필드 숨김
-            warning.style.display = "block"; // "살 빼고 다시 추천받자!" 메시지 표시
             bmiWarning.style.display = "block"; // "후식 먹지 말고 살좀 빼자!" 메시지 표시
 
             // 10초 후 버튼 활성화 및 경고 메시지 숨김
             setTimeout(() => {
                 document.getElementById("recommendButton").disabled = false;
-                warning.style.display = "none"; // 경고 메시지 숨김
                 bmiWarning.style.display = "none"; // BMI 경고 메시지 숨김
                 canRecommend = true; // 추천 가능 상태로 변경
             }, 10000);
