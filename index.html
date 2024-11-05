@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후식 랜덤 추천</title>
+    <title>후식 랜덤 추천기</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -31,6 +31,7 @@
             font-size: 1em;
             border-radius: 4px;
             border: 1px solid #ccc;
+            display: none; /* 초기에는 숨깁니다 */
         }
         button {
             padding: 10px 20px;
@@ -56,16 +57,23 @@
 
 <div class="container">
     <h1>후식 랜덤 추천기</h1>
-    <p>키(cm)와 몸무게(kg)를 입력하고 후식을 추천받으세요!</p>
+    <button onclick="showInputs()">추천받기</button>
     
-    <input type="number" id="height" placeholder="키 (cm)" required>
-    <input type="number" id="weight" placeholder="몸무게 (kg)" required>
-    <button onclick="getDessert()">추천받기</button>
+    <div id="inputFields" style="display: none;">
+        <p>키(cm)와 몸무게(kg)를 입력하세요:</p>
+        <input type="number" id="height" placeholder="키 (cm)" required>
+        <input type="number" id="weight" placeholder="몸무게 (kg)" required>
+        <button onclick="getDessert()">입력 완료</button>
+    </div>
 
     <div id="result"></div>
 </div>
 
 <script>
+    function showInputs() {
+        document.getElementById("inputFields").style.display = "block"; // 입력 필드 표시
+    }
+
     function getDessert() {
         const height = parseFloat(document.getElementById("height").value);
         const weight = parseFloat(document.getElementById("weight").value);
@@ -80,7 +88,7 @@
         const bmi = weight / ((height / 100) ** 2);
         const bmiThreshold = 24;  // 기준 변경 (BMI 24 이상일 경우 경고 메시지)
 
-        // 후식 리스트 업데이트
+        // 후식 리스트
         const desserts = ["베라", "요아정", "설빙", "마카롱", "두바이 초콜릿"];
 
         // BMI 체크 및 결과 출력
@@ -88,7 +96,7 @@
             const randomDessert = desserts[Math.floor(Math.random() * desserts.length)];
             result.innerText = `추천 후식: ${randomDessert}`;
         } else {
-            result.innerText = "BMI가 높아요! 살을 빼야 하니 굶어라!";
+            result.innerText = "후식 먹지 말고 살좀 빼자!";
         }
     }
 </script>
