@@ -20,6 +20,7 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative; /* 위치 조정을 위해 설정 */
         }
         h1 {
             color: #333;
@@ -60,13 +61,21 @@
             height: auto;
             margin-top: 10px; /* 이미지와 텍스트 사이의 간격 */
         }
+        #warning {
+            display: none; /* 초기에는 숨김 */
+            position: absolute; /* 텍스트 위치 조정을 위해 설정 */
+            right: 20px;
+            top: 20px;
+            font-size: 4em; /* 큰 텍스트 크기 */
+            color: red;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>후식 랜덤 추천기</h1>
-    <button onclick="showInputs()">추천받기</button>
+    <button id="recommendButton" onclick="showInputs()">추천받기</button>
     
     <div id="inputFields">
         <p>키(cm)와 몸무게(kg)를 입력하세요:</p>
@@ -77,15 +86,22 @@
 
     <div id="result"></div>
     <img id="dessertImage" style="display:none;" alt="후식 이미지">
+    <div id="warning">살 빼고 다시 추천받자!</div>
 </div>
 
 <script>
+    let canRecommend = true; // 추천 가능 여부
+
     function showInputs() {
-        document.getElementById("inputFields").style.display = "block"; // 입력 필드 표시
-        const inputs = document.querySelectorAll("#inputFields input");
-        inputs.forEach(input => {
-            input.style.display = "block"; // 각 입력 필드 표시
-        });
+        // 입력 필드가 숨겨져 있으면 표시하고 추천 버튼을 비활성화
+        if (canRecommend) {
+            document.getElementById("inputFields").style.display = "block"; // 입력 필드 표시
+            const inputs = document.querySelectorAll("#inputFields input");
+            inputs.forEach(input => {
+                input.style.display = "block"; // 각 입력 필드 표시
+            });
+            canRecommend = false; // 추천 불가 상태
+        }
     }
 
     function getDessert() {
@@ -93,6 +109,7 @@
         const weight = parseFloat(document.getElementById("weight").value);
         const result = document.getElementById("result");
         const dessertImage = document.getElementById("dessertImage");
+        const warning = document.getElementById("warning");
 
         if (isNaN(height) || isNaN(weight)) {
             result.innerText = "키와 몸무게를 모두 입력해 주세요.";
@@ -119,9 +136,32 @@
             result.innerText = `추천 후식: ${randomDessert.name}`;
             dessertImage.src = randomDessert.image; // 이미지 변경
             dessertImage.style.display = "block"; // 이미지 표시
+
+            // 입력 필드를 숨김
+            document.getElementById("inputFields").style.display = "none";
+            const inputs = document.querySelectorAll("#inputFields input");
+            inputs.forEach(input => {
+                input.value = ''; // 입력 필드 초기화
+                input.style.display = "none"; // 입력 필드 숨김
+            });
+
+            canRecommend = true; // 추천 가능 상태로 변경
         } else {
             result.innerText = "후식 먹지 말고 살좀 빼자!";
             dessertImage.style.display = "none"; // 이미지 숨김
+
+            // 추천 버튼과 입력 필드를 비활성화
+            canRecommend = false;
+            document.getElementById("recommendButton").disabled = true;
+            document.getElementById("inputFields").style.display = "none"; // 입력 필드 숨김
+            warning.style.display = "block"; // 경고 메시지 표시
+
+            // 10초 후 버튼 활성화 및 경고 메시지 숨김
+            setTimeout(() => {
+                document.getElementById("recommendButton").disabled = false;
+                warning.style.display = "none"; // 경고 메시지 숨김
+                canRecommend = true; // 추천 가능 상태로 변경
+            }, 10000);
         }
     }
 </script>
