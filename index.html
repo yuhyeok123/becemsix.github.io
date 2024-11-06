@@ -2,166 +2,189 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후식 랜덤 추천기</title>
+    <title>AI와 함께하는 과학 오목 게임</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-gap: 2px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            font-size: 20px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f5f5f5;
+            cursor: pointer;
         }
-        .container {
-            text-align: center;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            position: relative; /* 위치 조정을 위해 설정 */
+        #message, #quiz, #difficulty, #playAgain {
+            margin: 20px;
+            font-size: 20px;
         }
-        h1 {
-            color: #333;
+        #quiz {
+            display: none;
         }
-        input[type="number"] {
-            margin: 10px 0;
-            padding: 20px;
-            width: 80%;
-            font-size: 1.5em;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            display: none; /* 초기에는 숨깁니다 */
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 1em;
-            color: #fff;
+        #playAgain {
+            display: none;
+            cursor: pointer;
             background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
             border: none;
             border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #result {
-            margin-top: 20px;
-            font-size: 1.5em; /* 결과 텍스트 크기 조정 */
-            color: #333;
-        }
-        #inputFields {
-            display: none; /* 입력 필드를 숨김 */
-            margin-top: 20px; /* 입력 필드와 버튼 사이의 간격 */
-        }
-        img {
-            max-width: 80%; /* 이미지 크기 조정 */
-            height: auto;
-            margin-top: 10px; /* 이미지와 텍스트 사이의 간격 */
-        }
-        #bmiWarning {
-            display: none; /* 초기에는 숨김 */
-            position: absolute; /* 텍스트 위치 조정을 위해 설정 */
-            left: 20px;
-            bottom: 20px;
-            font-size: 3em; /* 큰 텍스트 크기 */
-            color: red;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>후식 랜덤 추천기</h1>
-    <button id="recommendButton" onclick="showInputs()">추천받기</button>
-    
-    <div id="inputFields">
-        <p>키(cm)와 몸무게(kg)를 입력하세요:</p>
-        <input type="number" id="height" placeholder="키 (cm)" required>
-        <input type="number" id="weight" placeholder="몸무게 (kg)" required>
-        <button onclick="getDessert()">입력 완료</button>
-    </div>
+<h1>AI와 함께하는 과학 오목 게임</h1>
 
-    <div id="result"></div>
-    <img id="dessertImage" style="display:none;" alt="후식 이미지">
-    <div id="bmiWarning">후식 먹지 말고 살좀 빼자!</div>
+<div id="difficulty">
+    <label>난이도 선택: </label>
+    <button onclick="setDifficulty('easy')">쉬움</button>
+    <button onclick="setDifficulty('normal')">보통</button>
+    <button onclick="setDifficulty('hard')">어려움</button>
 </div>
 
-<script>
-    let canRecommend = true; // 추천 가능 여부
+<div id="message"></div>
+<div id="quiz">
+    <p id="quizQuestion"></p>
+    <input type="text" id="quizAnswer" placeholder="정답 입력">
+    <button onclick="submitAnswer()">제출</button>
+</div>
 
-    function showInputs() {
-        // 입력 필드가 숨겨져 있으면 표시하고 추천 버튼을 비활성화
-        document.getElementById("inputFields").style.display = "block"; // 입력 필드 표시
-        const inputs = document.querySelectorAll("#inputFields input");
-        inputs.forEach(input => {
-            input.style.display = "block"; // 각 입력 필드 표시
-        });
-        canRecommend = false; // 추천 불가 상태
+<div id="board"></div>
+<button id="playAgain" onclick="resetGame()">다시 하기</button>
+
+<script>
+    const boardSize = 15;
+    const board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+    let currentPlayer = "player";
+    let aiDelay = 5000;
+    let difficulty = "";
+    const message = document.getElementById("message");
+    const quiz = document.getElementById("quiz");
+    const quizQuestion = document.getElementById("quizQuestion");
+    const quizAnswer = document.getElementById("quizAnswer");
+    const playAgain = document.getElementById("playAgain");
+    
+    const easyQuestions = [
+        { question: "태양은 몇 개의 행성을 가지고 있나요?", answer: "8" }
+    ];
+    const normalQuestions = [
+        { question: "원자의 핵심을 이루는 입자는 무엇일까요?", answer: "양성자" }
+    ];
+    const hardQuestions = [
+        { question: "상온 초전도체는 몇 켈빈에서 발견되었나요?", answer: "4" }
+    ];
+
+    function setDifficulty(level) {
+        difficulty = level;
+        aiDelay = level === "easy" ? 5000 : level === "normal" ? 3000 : 1000;
+        message.textContent = `난이도 "${level}" 선택됨! 게임을 시작합니다.`;
+        document.getElementById("difficulty").style.display = "none";
+        createBoard();
+        playGame();
     }
 
-    function getDessert() {
-        const height = parseFloat(document.getElementById("height").value);
-        const weight = parseFloat(document.getElementById("weight").value);
-        const result = document.getElementById("result");
-        const dessertImage = document.getElementById("dessertImage");
-        const bmiWarning = document.getElementById("bmiWarning");
-
-        if (isNaN(height) || isNaN(weight)) {
-            result.innerText = "키와 몸무게를 모두 입력해 주세요.";
-            dessertImage.style.display = "none"; // 이미지 숨김
-            return;
+    function createBoard() {
+        const boardElement = document.getElementById("board");
+        boardElement.innerHTML = "";
+        for (let i = 0; i < boardSize * boardSize; i++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.onclick = () => cellClicked(i);
+            boardElement.appendChild(cell);
         }
+    }
 
-        // BMI 계산
-        const bmi = weight / ((height / 100) ** 2);
-        const bmiThreshold = 24;  // 기준 변경 (BMI 24 이상일 경우 경고 메시지)
+    function cellClicked(index) {
+        const row = Math.floor(index / boardSize);
+        const col = index % boardSize;
+        if (board[row][col] || currentPlayer !== "player") return;
+        
+        showQuiz(row, col);
+    }
 
-        // 후식 리스트 및 이미지 맵
-        const desserts = [
-            { name: "베라", image: "https://github.com/user-attachments/assets/5a0fe1b2-0d56-4b76-9b03-e592f4286889" },
-            { name: "요아정", image: "https://github.com/user-attachments/assets/13ea59a5-512b-4114-a896-b02da0f9a370" },
-            { name: "설빙", image: "https://github.com/user-attachments/assets/afa2a4c6-1f61-46f9-9f21-6edcbc06a059" },
-            { name: "마카롱", image: "https://github.com/user-attachments/assets/c6df76d3-decf-4c8c-ac13-174a9fc4d501" },
-            { name: "두바이 초콜릿", image: "https://github.com/user-attachments/assets/4ac194ab-82aa-401f-8da0-09f47f6cc54f" }
-        ];
+    function showQuiz(row, col) {
+        quiz.style.display = "block";
+        const questionData = difficulty === "easy" ? easyQuestions[0]
+                        : difficulty === "normal" ? normalQuestions[0]
+                        : hardQuestions[0];
+        quizQuestion.textContent = questionData.question;
+        quizAnswer.value = "";
+        
+        quizAnswer.dataset.row = row;
+        quizAnswer.dataset.col = col;
+    }
 
-        // BMI 체크 및 결과 출력
-        if (bmi < bmiThreshold) {
-            const randomDessert = desserts[Math.floor(Math.random() * desserts.length)];
-            result.innerText = `추천 후식: ${randomDessert.name}`;
-            dessertImage.src = randomDessert.image; // 이미지 변경
-            dessertImage.style.display = "block"; // 이미지 표시
-
-            // 입력 필드를 숨김
-            document.getElementById("inputFields").style.display = "none";
-            const inputs = document.querySelectorAll("#inputFields input");
-            inputs.forEach(input => {
-                input.value = ''; // 입력 필드 초기화
-                input.style.display = "none"; // 입력 필드 숨김
-            });
-
-            canRecommend = true; // 추천 가능 상태로 변경
-            bmiWarning.style.display = "none"; // BMI 경고 메시지 숨김
+    function submitAnswer() {
+        const row = parseInt(quizAnswer.dataset.row);
+        const col = parseInt(quizAnswer.dataset.col);
+        const answer = quizAnswer.value.trim();
+        const correctAnswer = difficulty === "easy" ? easyQuestions[0].answer
+                          : difficulty === "normal" ? normalQuestions[0].answer
+                          : hardQuestions[0].answer;
+        
+        if (answer === correctAnswer) {
+            board[row][col] = "player";
+            document.getElementById("board").children[row * boardSize + col].textContent = "●";
+            quiz.style.display = "none";
+            checkWin("player");
+            currentPlayer = "ai";
+            if (currentPlayer === "ai") {
+                setTimeout(aiMove, aiDelay);
+            }
         } else {
-            result.innerText = ""; // 추천 결과 지우기
-            dessertImage.style.display = "none"; // 이미지 숨김
-
-            // 추천 버튼과 입력 필드를 비활성화
-            canRecommend = false;
-            document.getElementById("recommendButton").disabled = true;
-            document.getElementById("inputFields").style.display = "none"; // 입력 필드 숨김
-            bmiWarning.style.display = "block"; // "후식 먹지 말고 살좀 빼자!" 메시지 표시
-
-            // 10초 후 버튼 활성화 및 경고 메시지 숨김
-            setTimeout(() => {
-                document.getElementById("recommendButton").disabled = false;
-                bmiWarning.style.display = "none"; // BMI 경고 메시지 숨김
-                canRecommend = true; // 추천 가능 상태로 변경
-            }, 10000);
+            message.textContent = "오답입니다! 다시 시도하세요.";
         }
+    }
+
+    function aiMove() {
+        let moveMade = false;
+        for (let i = 0; i < boardSize && !moveMade; i++) {
+            for (let j = 0; j < boardSize && !moveMade; j++) {
+                if (!board[i][j]) {
+                    board[i][j] = "ai";
+                    document.getElementById("board").children[i * boardSize + j].textContent = "○";
+                    moveMade = true;
+                }
+            }
+        }
+        checkWin("ai");
+        currentPlayer = "player";
+    }
+
+    function checkWin(player) {
+        // (여기에서 오목 승리 조건을 체크하는 로직을 추가할 수 있음)
+        const playerWon = player === "player";
+        const winMessage = playerWon ? 
+            (difficulty === "easy" ? "축하합니다! 다음 난이도도 도전해보세요."
+            : difficulty === "normal" ? "축하합니다! 다음 난이도도 도전해보세요."
+            : "축하합니다!") :
+            (difficulty === "easy" ? "다시 도전해보세요!"
+            : difficulty === "normal" ? "다시 도전해보세요!"
+            : "아쉽네요. 난이도를 낮춰서 연습해보세요.");
+        
+        message.textContent = winMessage;
+        if (!playerWon) playAgain.style.display = "block";
+    }
+
+    function resetGame() {
+        location.reload();
     }
 </script>
 
