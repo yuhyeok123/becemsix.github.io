@@ -1,192 +1,99 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI와 함께하는 과학 오목 게임</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Rex Runner Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
             margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
+            background-color: #f7f7f7;
         }
-        #board {
-            display: grid;
-            grid-template-columns: repeat(15, 40px);
-            grid-gap: 2px;
-            margin-top: 20px;
+        #game {
+            position: relative;
+            width: 600px;
+            height: 150px;
+            border: 2px solid #333;
+            overflow: hidden;
+            background-color: #fff;
         }
-        .cell {
+        #dino {
+            position: absolute;
             width: 40px;
             height: 40px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            background-color: #333;
+            bottom: 0;
         }
-        #message, #quiz, #difficulty, #playAgain {
-            margin: 20px;
-            font-size: 20px;
+        #obstacle {
+            position: absolute;
+            width: 20px;
+            height: 40px;
+            background-color: #333;
+            right: 0;
+            bottom: 0;
+            animation: move 2s linear infinite;
         }
-        #quiz {
-            display: none;
-        }
-        #playAgain {
-            display: none;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
+        @keyframes move {
+            from { right: 0; }
+            to { right: 100%; }
         }
     </style>
 </head>
 <body>
+    <div id="game">
+        <div id="dino"></div>
+        <div id="obstacle"></div>
+    </div>
+    <script>
+        const dino = document.getElementById("dino");
+        let isJumping = false;
 
-<h1>AI와 함께하는 과학 오목 게임</h1>
-
-<div id="difficulty">
-    <label>난이도 선택: </label>
-    <button onclick="setDifficulty('easy')">쉬움</button>
-    <button onclick="setDifficulty('normal')">보통</button>
-    <button onclick="setDifficulty('hard')">어려움</button>
-</div>
-
-<div id="message"></div>
-<div id="quiz">
-    <p id="quizQuestion"></p>
-    <input type="text" id="quizAnswer" placeholder="정답 입력">
-    <button onclick="submitAnswer()">제출</button>
-</div>
-
-<div id="board"></div>
-<button id="playAgain" onclick="resetGame()">다시 하기</button>
-
-<script>
-    const boardSize = 15;
-    const board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
-    let currentPlayer = "player";
-    let aiDelay = 5000;
-    let difficulty = "";
-    const message = document.getElementById("message");
-    const quiz = document.getElementById("quiz");
-    const quizQuestion = document.getElementById("quizQuestion");
-    const quizAnswer = document.getElementById("quizAnswer");
-    const playAgain = document.getElementById("playAgain");
-    
-    const easyQuestions = [
-        { question: "태양은 몇 개의 행성을 가지고 있나요?", answer: "8" }
-    ];
-    const normalQuestions = [
-        { question: "원자의 핵심을 이루는 입자는 무엇일까요?", answer: "양성자" }
-    ];
-    const hardQuestions = [
-        { question: "상온 초전도체는 몇 켈빈에서 발견되었나요?", answer: "4" }
-    ];
-
-    function setDifficulty(level) {
-        difficulty = level;
-        aiDelay = level === "easy" ? 5000 : level === "normal" ? 3000 : 1000;
-        message.textContent = `난이도 "${level}" 선택됨! 게임을 시작합니다.`;
-        document.getElementById("difficulty").style.display = "none";
-        createBoard();
-        playGame();
-    }
-
-    function createBoard() {
-        const boardElement = document.getElementById("board");
-        boardElement.innerHTML = "";
-        for (let i = 0; i < boardSize * boardSize; i++) {
-            const cell = document.createElement("div");
-            cell.classList.add("cell");
-            cell.onclick = () => cellClicked(i);
-            boardElement.appendChild(cell);
-        }
-    }
-
-    function cellClicked(index) {
-        const row = Math.floor(index / boardSize);
-        const col = index % boardSize;
-        if (board[row][col] || currentPlayer !== "player") return;
-        
-        showQuiz(row, col);
-    }
-
-    function showQuiz(row, col) {
-        quiz.style.display = "block";
-        const questionData = difficulty === "easy" ? easyQuestions[0]
-                        : difficulty === "normal" ? normalQuestions[0]
-                        : hardQuestions[0];
-        quizQuestion.textContent = questionData.question;
-        quizAnswer.value = "";
-        
-        quizAnswer.dataset.row = row;
-        quizAnswer.dataset.col = col;
-    }
-
-    function submitAnswer() {
-        const row = parseInt(quizAnswer.dataset.row);
-        const col = parseInt(quizAnswer.dataset.col);
-        const answer = quizAnswer.value.trim();
-        const correctAnswer = difficulty === "easy" ? easyQuestions[0].answer
-                          : difficulty === "normal" ? normalQuestions[0].answer
-                          : hardQuestions[0].answer;
-        
-        if (answer === correctAnswer) {
-            board[row][col] = "player";
-            document.getElementById("board").children[row * boardSize + col].textContent = "●";
-            quiz.style.display = "none";
-            checkWin("player");
-            currentPlayer = "ai";
-            if (currentPlayer === "ai") {
-                setTimeout(aiMove, aiDelay);
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space" && !isJumping) {
+                jump();
             }
-        } else {
-            message.textContent = "오답입니다! 다시 시도하세요.";
-        }
-    }
+        });
 
-    function aiMove() {
-        let moveMade = false;
-        for (let i = 0; i < boardSize && !moveMade; i++) {
-            for (let j = 0; j < boardSize && !moveMade; j++) {
-                if (!board[i][j]) {
-                    board[i][j] = "ai";
-                    document.getElementById("board").children[i * boardSize + j].textContent = "○";
-                    moveMade = true;
+        function jump() {
+            isJumping = true;
+            let upInterval = setInterval(() => {
+                if (dino.offsetTop <= 50) {
+                    clearInterval(upInterval);
+                    let downInterval = setInterval(() => {
+                        if (dino.offsetTop >= 100) {
+                            clearInterval(downInterval);
+                            isJumping = false;
+                        } else {
+                            dino.style.top = dino.offsetTop + 5 + "px";
+                        }
+                    }, 20);
+                } else {
+                    dino.style.top = dino.offsetTop - 5 + "px";
                 }
+            }, 20);
+        }
+
+        function checkCollision() {
+            const dinoRect = dino.getBoundingClientRect();
+            const obstacle = document.getElementById("obstacle");
+            const obstacleRect = obstacle.getBoundingClientRect();
+
+            if (
+                dinoRect.right > obstacleRect.left &&
+                dinoRect.left < obstacleRect.right &&
+                dinoRect.bottom > obstacleRect.top &&
+                dinoRect.top < obstacleRect.bottom
+            ) {
+                alert("Game Over!");
+                obstacle.style.animation = "none";
             }
         }
-        checkWin("ai");
-        currentPlayer = "player";
-    }
 
-    function checkWin(player) {
-        // (여기에서 오목 승리 조건을 체크하는 로직을 추가할 수 있음)
-        const playerWon = player === "player";
-        const winMessage = playerWon ? 
-            (difficulty === "easy" ? "축하합니다! 다음 난이도도 도전해보세요."
-            : difficulty === "normal" ? "축하합니다! 다음 난이도도 도전해보세요."
-            : "축하합니다!") :
-            (difficulty === "easy" ? "다시 도전해보세요!"
-            : difficulty === "normal" ? "다시 도전해보세요!"
-            : "아쉽네요. 난이도를 낮춰서 연습해보세요.");
-        
-        message.textContent = winMessage;
-        if (!playerWon) playAgain.style.display = "block";
-    }
-
-    function resetGame() {
-        location.reload();
-    }
-</script>
-
+        setInterval(checkCollision, 10);
+    </script>
 </body>
 </html>
